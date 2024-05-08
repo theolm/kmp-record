@@ -20,5 +20,6 @@ dependencyResolutionManagement {
 }
 
 include(
-    ":composeApp"
+    ":composeApp",
+    ":record-core",
 )
