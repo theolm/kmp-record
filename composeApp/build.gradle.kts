@@ -1,8 +1,14 @@
+import config.Config
+
 plugins {
     id("android-application-setup")
     id("desktop-application-setup")
     id("compose-module-setup")
     id("detekt-setup")
+}
+
+android {
+    namespace = Config.applicationId + ".sample"
 }
 
 kotlin {
@@ -15,6 +21,7 @@ kotlin {
         }
 
         commonMain.dependencies {
+            implementation(projects.recordCore)
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenModel)
             implementation(libs.voyager.koin)

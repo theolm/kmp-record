@@ -10,7 +10,7 @@ fun main() = application {
         modules(appModule())
     }
 
-    Window(onCloseRequest = ::exitApplication, title = "Temp") {
+    Window(onCloseRequest = ::exitApplication, title = "Record Sample") {
         App()
     }
 }

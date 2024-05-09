@@ -1,23 +1,21 @@
 package home
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.koin.getScreenModel
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
+import dev.theolm.record.Record
 
 class HomeScreen : Screen {
     @Composable
@@ -25,29 +23,44 @@ class HomeScreen : Screen {
         Screen()
     }
 
-    @OptIn(ExperimentalResourceApi::class)
     @Composable
     private fun Screen() {
-        val screenModel = getScreenModel<HomeScreenModel>()
+        val screenModel = rememberScreenModel { HomeScreenModel() }
         var uiState by screenModel.uiState
 
+        var recording by remember { mutableStateOf(false) }
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             content = {
-                Button(
-                    onClick = {
-                        uiState = uiState.copy(showContent = !uiState.showContent)
-                    }
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Click me!")
-                }
-                AnimatedVisibility(uiState.showContent) {
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Button(
+                        onClick = {
+                            recording = if (recording) {
+                                Record.stopRecording().also {
+                                    println("Recording stopped. File saved at $it")
+                                }
+                                false
+                            } else {
+                                runCatching {
+                                    Record.startRecording()
+                                    true
+                                }.onFailure {
+                                    println("Error: $it")
+                                    false
+                                }.getOrDefault(false)
+                            }
+                        }
                     ) {
-                        Image(painterResource(DrawableResource("compose-multiplatform.xml")), null)
-                        Text("Compose: ${uiState.message}")
+                        val text = if (recording) {
+                            "Stop Recording"
+                        } else {
+                            "Start Recording"
+                        }
+                        Text(text)
                     }
                 }
             }
