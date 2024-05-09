@@ -36,16 +36,6 @@ kotlin {
 
     val libs = the<LibrariesForLibs>()
     sourceSets {
-        commonMain.dependencies {
-            implementation(libs.koin.core)
-            implementation(libs.koin.test)
-        }
-
-        iosMain.dependencies {
-            //Workaround to fix koin on ios
-            implementation(libs.stately.common)
-        }
-
         val desktopMain by getting
         desktopMain.dependencies {
             implementation(libs.kotlin.coroutines.swing)

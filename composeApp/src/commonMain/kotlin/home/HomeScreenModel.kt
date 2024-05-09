@@ -1,16 +1,13 @@
 package home
 
-import Greeting
 import androidx.compose.runtime.mutableStateOf
 import cafe.adriel.voyager.core.model.ScreenModel
 
-class HomeScreenModel(
-    greeting: Greeting
-) : ScreenModel {
+class HomeScreenModel() : ScreenModel {
     val uiState = mutableStateOf(UiState())
 
     init {
-        uiState.value = uiState.value.copy(message = greeting.greet())
+        uiState.value = uiState.value.copy(message = "")
     }
 
     data class UiState(

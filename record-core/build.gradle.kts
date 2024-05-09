@@ -12,14 +12,14 @@ android {
 }
 
 kotlin {
+    explicitApi()
     setupKmpTargets()
 
     sourceSets {
-//        androidMain.dependencies {
-//            implementation(libs.androidx.activity.ktx)
-//        }
+        androidMain.dependencies {
+            implementation(libs.androidx.startup)
+        }
         commonMain.dependencies {
-            implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {
