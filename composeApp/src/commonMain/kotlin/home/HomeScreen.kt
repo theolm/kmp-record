@@ -50,7 +50,6 @@ class HomeScreen : Screen {
                                     true
                                 }.onFailure {
                                     println("Error: $it")
-                                    false
                                 }.getOrDefault(false)
                             }
                         }
