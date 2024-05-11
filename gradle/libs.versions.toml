@@ -25,6 +25,7 @@ startup = "1.1.1"
 android-buildTools = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-common = { module = "org.jetbrains.kotlin:kotlin-test-common", version.ref = "kotlin" }
 kotlin-test-annotation = { module = "org.jetbrains.kotlin:kotlin-test-annotations-common", version.ref = "kotlin" }

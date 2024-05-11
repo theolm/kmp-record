@@ -5,6 +5,7 @@ import dev.theolm.record.config.RecordConfig
 
 internal actual object RecordCore {
     internal actual fun startRecording(config: RecordConfig) {
+        
     }
 
     internal actual fun stopRecording(): String {
