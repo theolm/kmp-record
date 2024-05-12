@@ -2,7 +2,7 @@ import config.Config
 
 plugins {
     id("android-application-setup")
-    id("desktop-application-setup")
+//    id("desktop-application-setup")
     id("compose-module-setup")
     id("detekt-setup")
 }
@@ -13,8 +13,6 @@ android {
 
 kotlin {
     sourceSets {
-        val desktopMain by getting
-        
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)

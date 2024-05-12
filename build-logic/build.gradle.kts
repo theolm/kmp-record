@@ -16,4 +16,5 @@ dependencies {
     implementation(libs.android.buildTools)
     implementation(libs.compose.plugin)
     implementation(libs.detekt.gradlePlugin)
+    implementation(libs.gradleMavenPublish.gradlePlugin)
 }

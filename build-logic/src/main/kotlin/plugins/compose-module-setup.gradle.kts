@@ -16,8 +16,6 @@ kotlin {
 
     val libs = the<LibrariesForLibs>()
     sourceSets {
-        val desktopMain by getting
-
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -26,9 +24,10 @@ kotlin {
             implementation(compose.components.resources)
         }
 
-        desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlin.coroutines.swing)
-        }
+//        val desktopMain by getting
+//        desktopMain.dependencies {
+//            implementation(compose.desktop.currentOs)
+//            implementation(libs.kotlin.coroutines.swing)
+//        }
     }
 }
