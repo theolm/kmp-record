@@ -9,22 +9,22 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import dev.theolm.record.config.AudioEncoder
 import dev.theolm.record.config.OutputFormat
+import dev.theolm.record.config.OutputLocation
 import dev.theolm.record.config.RecordConfig
 import dev.theolm.record.error.NoOutputFileException
 import dev.theolm.record.error.PermissionMissingException
 import dev.theolm.record.error.RecordFailException
-import java.io.IOException
 
 @Suppress("TooGenericExceptionCaught", "SwallowedException")
 internal actual object RecordCore {
     private var recorder: MediaRecorder? = null
     private var output: String? = null
-    private var isRecording: Boolean = false
+    private var recordingState : RecordingState = RecordingState.IDLE
 
     @Throws(RecordFailException::class)
     internal actual fun startRecording(config: RecordConfig) {
         checkPermission()
-        output = "${getCacheDir()}/${getFileName(config.outputFormat.extension)}"
+        output = config.getOutput()
         recorder = createMediaRecorder(config)
 
         recorder?.apply {
@@ -39,13 +39,13 @@ internal actual object RecordCore {
             }
 
             start()
-            isRecording = true
+            recordingState = RecordingState.RECORDING
         }
     }
 
     @Throws(NoOutputFileException::class)
     internal actual fun stopRecording(): String {
-        isRecording = false
+        recordingState = RecordingState.IDLE
         recorder?.apply {
             stop()
             release()
@@ -57,7 +57,7 @@ internal actual object RecordCore {
         } ?: throw NoOutputFileException()
     }
 
-    internal actual fun isRecording(): Boolean = isRecording
+    internal actual fun isRecording(): Boolean = recordingState == RecordingState.RECORDING
 
     private fun createMediaRecorder(config: RecordConfig) =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -70,14 +70,6 @@ internal actual object RecordCore {
             setOutputFile(output)
             setAudioEncoder(config.audioEncoder.toMediaRecorderAudioEncoder())
         }
-
-    private fun getCacheDir(): String? =
-        runCatching { applicationContext.cacheDir.absolutePath }.getOrNull()
-
-    private fun getFileName(extension: String): String {
-        val timestamp = System.currentTimeMillis().toString()
-        return "$timestamp$extension"
-    }
 
     private fun checkPermission() {
         if (
@@ -98,4 +90,13 @@ private fun OutputFormat.toMediaRecorderOutputFormat(): Int = when (this) {
 
 private fun AudioEncoder.toMediaRecorderAudioEncoder(): Int = when (this) {
     AudioEncoder.AAC -> MediaRecorder.AudioEncoder.AAC
+}
+
+private fun RecordConfig.getOutput(): String {
+    val fileName = "${System.currentTimeMillis()}${outputFormat.extension}"
+    return when (this.outputLocation) {
+        OutputLocation.Cache -> "${applicationContext.cacheDir.absolutePath}/$fileName"
+        OutputLocation.Internal -> "${applicationContext.filesDir}/$fileName"
+        is OutputLocation.Custom -> "${this.outputLocation.path}/$fileName"
+    }
 }

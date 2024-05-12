@@ -1,5 +1,6 @@
 package home
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,8 @@ import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import dev.theolm.record.Record
+import dev.theolm.record.config.OutputLocation
+import dev.theolm.record.config.RecordConfig
 
 class HomeScreen : Screen {
     @Composable
@@ -23,6 +26,7 @@ class HomeScreen : Screen {
         Screen()
     }
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @Composable
     private fun Screen() {
         val screenModel = rememberScreenModel { HomeScreenModel() }
@@ -40,6 +44,9 @@ class HomeScreen : Screen {
                     Button(
                         onClick = {
                             recording = if (recording) {
+                                Record.setConfig(
+                                    RecordConfig(outputLocation = OutputLocation.Internal)
+                                )
                                 Record.stopRecording().also {
                                     println("Recording stopped. File saved at $it")
                                 }

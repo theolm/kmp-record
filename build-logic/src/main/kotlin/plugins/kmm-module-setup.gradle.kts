@@ -36,9 +36,9 @@ kotlin {
 
     val libs = the<LibrariesForLibs>()
     sourceSets {
-        val desktopMain by getting
-        desktopMain.dependencies {
-            implementation(libs.kotlin.coroutines.swing)
-        }
+//        val desktopMain by getting
+//        desktopMain.dependencies {
+//            implementation(libs.kotlin.coroutines.swing)
+//        }
     }
 }
