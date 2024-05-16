@@ -25,6 +25,7 @@ kotlin {
             implementation(libs.voyager.koin)
             implementation(compose.material3)
             implementation(libs.materialKolor)
+            implementation("dev.icerock.moko:permissions-compose:0.18.0")
         }
     }
 }

@@ -2,34 +2,34 @@
 package dev.theolm.record
 
 import dev.theolm.record.config.OutputFormat
+import dev.theolm.record.config.OutputLocation
 import dev.theolm.record.config.RecordConfig
 import dev.theolm.record.error.NoOutputFileException
 import dev.theolm.record.error.PermissionMissingException
 import dev.theolm.record.error.RecordFailException
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.ObjCObjectVar
-import kotlinx.cinterop.nativeHeap
-import platform.AVFAudio.AVAudioFormat
 import platform.AVFAudio.AVAudioQuality
 import platform.AVFAudio.AVAudioRecorder
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionRecordPermissionDenied
 import platform.AVFAudio.AVAudioSessionRecordPermissionUndetermined
 import platform.AVFAudio.AVEncoderAudioQualityKey
-import platform.AVFAudio.AVEncoderBitRateKey
 import platform.AVFAudio.AVFormatIDKey
-import platform.AVFAudio.AVLinearPCMBitDepthKey
 import platform.AVFAudio.AVNumberOfChannelsKey
 import platform.AVFAudio.AVSampleRateKey
 import platform.CoreAudioTypes.AudioFormatID
-import platform.CoreAudioTypes.kAudioFormatAC3
 import platform.CoreAudioTypes.kAudioFormatMPEG4AAC
-import platform.Foundation.NSError
+import platform.CoreAudioTypes.kAudioFormatMPEG4CELP
+import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSURL
 import platform.Foundation.NSURL.Companion.fileURLWithPath
+import platform.Foundation.NSUserDomainMask
 import platform.Foundation.temporaryDirectory
 import kotlin.system.getTimeMillis
+import kotlin.time.TimeSource
 
+private const val SampleRate = 44100
 internal actual object RecordCore {
     private var recorder: AVAudioRecorder? = null
     private var output: String? = null
@@ -38,18 +38,13 @@ internal actual object RecordCore {
     @OptIn(ExperimentalForeignApi::class)
     @Throws(RecordFailException::class)
     internal actual fun startRecording(config: RecordConfig) {
+        println(config.toString())
         checkPermission()
-        output = getOutputPath(config.outputFormat.extension)
-
-//        val settings = mapOf<Any?, Any>(
-//            AVFormatIDKey to config.outputFormat.toAVFormatID(),
-//            AVSampleRateKey to 44100.0,
-//            AVNumberOfChannelsKey to 1
-//        )
+        output = config.getOutput()
 
         val settings = mapOf<Any?, Any>(
-            AVFormatIDKey to kAudioFormatMPEG4AAC,
-            AVSampleRateKey to 44100.0,
+            AVFormatIDKey to config.outputFormat.toAVFormatID(),
+            AVSampleRateKey to SampleRate,
             AVNumberOfChannelsKey to 1,
             AVEncoderAudioQualityKey to AVAudioQuality.MAX_VALUE
         )
@@ -60,10 +55,6 @@ internal actual object RecordCore {
             settings,
             null
             )
-
-//        if (recorder == null && errorRef.pointee != null) {
-//            println("Error initializing AVAudioRecorder: \(errorRef.pointee?.localizedDescription)")
-//        }
 
         recorder?.let {
             if (!it.prepareToRecord()) {
@@ -88,12 +79,6 @@ internal actual object RecordCore {
 
     internal actual fun isRecording(): Boolean = isRecording
 
-    private fun getCacheDir(): String? = NSFileManager.defaultManager.temporaryDirectory.path
-
-    private fun getFileName(extension: String): String {
-        val timestamp = getTimeMillis().toString()
-        return "$timestamp$extension"
-    }
 
     private fun checkPermission() {
         val audioSession = AVAudioSession.sharedInstance()
@@ -112,13 +97,22 @@ internal actual object RecordCore {
         }
     }
 
-    private fun getOutputPath(extension: String): String {
-        val cacheDir = getCacheDir() ?: throw NoOutputFileException()
-        return "$cacheDir/${getFileName(extension)}"
+    private fun RecordConfig.getOutput(): String {
+        val timestamp = getTimeMillis().toString()
+        val fileName = "${timestamp}${outputFormat.extension}"
+
+        return when (this.outputLocation) {
+            OutputLocation.Cache -> "${NSFileManager.defaultManager.temporaryDirectory.path}/$fileName"
+            OutputLocation.Internal -> {
+                val urls = NSFileManager.defaultManager.URLsForDirectory(NSDocumentDirectory, NSUserDomainMask)
+                val documentsURL = urls.first() as? NSURL ?: throw NoOutputFileException()
+                "${documentsURL.path!!}/$fileName"
+            }
+            is OutputLocation.Custom -> "${this.outputLocation.path}/$fileName"
+        }
     }
 
     private fun OutputFormat.toAVFormatID(): AudioFormatID = when (this) {
         OutputFormat.MPEG_4 -> kAudioFormatMPEG4AAC
-        OutputFormat.THREE_GPP -> kAudioFormatMPEG4AAC
     }
 }

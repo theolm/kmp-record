@@ -85,7 +85,6 @@ internal actual object RecordCore {
 
 private fun OutputFormat.toMediaRecorderOutputFormat(): Int = when (this) {
     OutputFormat.MPEG_4 -> MediaRecorder.OutputFormat.MPEG_4
-    OutputFormat.THREE_GPP -> MediaRecorder.OutputFormat.THREE_GPP
 }
 
 private fun AudioEncoder.toMediaRecorderAudioEncoder(): Int = when (this) {
