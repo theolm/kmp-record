@@ -8,7 +8,6 @@ public data class RecordConfig(
 
 public sealed class OutputFormat(public val extension: String) {
     public data object MPEG_4 : OutputFormat(".mp4")
-    public data object THREE_GPP : OutputFormat(".3gp")
 }
 
 public sealed class AudioEncoder {
