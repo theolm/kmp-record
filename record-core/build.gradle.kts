@@ -47,6 +47,6 @@ mavenPublishing {
 
     pom {
         name.set("KMP-Record")
-        description.set("TODO")
+        description.set("Simple library to record audio on Android and iOS")
     }
 }

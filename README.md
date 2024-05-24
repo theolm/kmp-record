@@ -10,7 +10,7 @@ KMP-Record is a lightweight Kotlin Multiplatform library designed to facilitate 
 
 
 ## WARNING
-This library is in super-early stages. Currently it only support Android (iOS comming soon) and the API is constantly changing. Using it at your own risk.
+This library is in super-early stages so the API can change a lot. Using it at your own risk.
 
 ## Getting Started
 
@@ -19,10 +19,51 @@ This library is in super-early stages. Currently it only support Android (iOS co
 - Kotlin Multiplatform project setup
 - For Android: Minimum SDK version 22
 - For iOS: iOS 13.0 or later
+- It does not work on simulator (it crashes)
+- The application should manage the necessary permissions
 
 ### Installation Process
 
 The library is available via Maven Central:
 
 ```kt
-implementation("dev.theolm.record:record-core:<latest_version>")
+commonMain.dependencies {
+    implementation("dev.theolm.record:record-core:<latest_version>")
+}
+```
+
+## Usage
+
+### Recording
+
+To start recording make sure the user provided the right dependencies and just call startRecording. This method will throw exception in case anything goes wrong.
+
+```kt
+Record.startRecording()
+```
+
+This should start recording the audio with the default configuration.
+
+To stop the recording call the method `stopRecording` that will return the path of the saved audio.
+
+```kt
+Record.stopRecording().also { savedAudioPath ->
+    println("Recording stopped. File saved at $savedAudioPath")
+}
+```
+
+You can also call the method `Record.isRecording()` to check the status of the `Record`.
+
+### Setting Record configuration
+To change the default configuration just call the method `Record.setConfig` and pass the configuration object.
+
+```kt
+Record.setConfig(
+    RecordConfig(
+        outputLocation = OutputLocation.Cache,
+        outputFormat = OutputFormat.MPEG_4
+    )
+)
+```
+
+For now the configuration options are pretty limited. If you need a different configuration (e.g. different format), please open an issue or a PR.
