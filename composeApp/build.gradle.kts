@@ -2,9 +2,9 @@ import config.Config
 
 plugins {
     id("android-application-setup")
-//    id("desktop-application-setup")
     id("compose-module-setup")
     id("detekt-setup")
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -25,7 +25,7 @@ kotlin {
             implementation(libs.voyager.koin)
             implementation(compose.material3)
             implementation(libs.materialKolor)
-            implementation("dev.icerock.moko:permissions-compose:0.18.0")
+            implementation(libs.mokoPermissions)
         }
     }
 }
