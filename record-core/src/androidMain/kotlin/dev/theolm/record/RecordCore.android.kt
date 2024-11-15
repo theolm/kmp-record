@@ -34,7 +34,7 @@ internal actual object RecordCore {
                 throw RecordFailException()
             }
 
-            setOnErrorListener { mr, what, extra ->
+            setOnErrorListener { _, _, _ ->
                 stopRecording()
             }
 
