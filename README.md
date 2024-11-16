@@ -47,7 +47,7 @@ This should start recording the audio with the default configuration.
 To stop the recording call the method `stopRecording` that will return the path of the saved audio.
 
 ```kt
-Record.stopRecording().also { savedAudioPath ->
+Record.stopRecording().also { savedAudioPath: String ->
     println("Recording stopped. File saved at $savedAudioPath")
 }
 ```
@@ -66,4 +66,4 @@ Record.setConfig(
 )
 ```
 
-For now the configuration options are pretty limited. If you need a different configuration (e.g. different format), please open an issue or a PR.
+For now the configuration options are pretty limited to MPEG_4 and WAV. If you need a different configuration (e.g. different format), please open an issue or a PR.
