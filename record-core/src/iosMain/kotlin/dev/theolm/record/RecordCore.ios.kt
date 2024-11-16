@@ -5,6 +5,7 @@ package dev.theolm.record
 import dev.theolm.record.config.OutputFormat
 import dev.theolm.record.config.OutputLocation
 import dev.theolm.record.config.RecordConfig
+import dev.theolm.record.config.SampleRate
 import dev.theolm.record.error.NoOutputFileException
 import dev.theolm.record.error.PermissionMissingException
 import dev.theolm.record.error.RecordFailException
@@ -24,12 +25,14 @@ import platform.AVFAudio.AVAudioSessionRecordPermissionDenied
 import platform.AVFAudio.AVAudioSessionRecordPermissionUndetermined
 import platform.AVFAudio.AVEncoderAudioQualityKey
 import platform.AVFAudio.AVFormatIDKey
+import platform.AVFAudio.AVLinearPCMBitDepthKey
+import platform.AVFAudio.AVLinearPCMIsFloatKey
 import platform.AVFAudio.AVNumberOfChannelsKey
 import platform.AVFAudio.AVSampleRateKey
 import platform.AVFAudio.setActive
 import platform.CoreAudioTypes.AudioFormatID
 import platform.CoreAudioTypes.kAudioFormatMPEG4AAC
-import platform.CoreAudioTypes.kAudioFormatMPEG4CELP
+import platform.CoreAudioTypes.kAudioFormatLinearPCM
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSError
 import platform.Foundation.NSFileManager
@@ -37,9 +40,7 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSURL.Companion.fileURLWithPath
 import platform.Foundation.NSUserDomainMask
 import platform.Foundation.temporaryDirectory
-import kotlin.system.getTimeMillis
-
-private const val SampleRate = 44100
+import kotlin.time.TimeSource
 
 internal actual object RecordCore {
     private var recorder: AVAudioRecorder? = null
@@ -49,7 +50,6 @@ internal actual object RecordCore {
     @OptIn(ExperimentalForeignApi::class)
     @Throws(RecordFailException::class)
     internal actual fun startRecording(config: RecordConfig) {
-        println(config.toString())
         checkPermission()
         configureAudioSession()
 
@@ -58,7 +58,9 @@ internal actual object RecordCore {
         val settings = mapOf<Any?, Any>(
             AVFormatIDKey to config.outputFormat.toAVFormatID(),
             AVSampleRateKey to SampleRate,
-            AVNumberOfChannelsKey to 1,
+            AVNumberOfChannelsKey to 1, // you may want to put a condition here?
+            AVLinearPCMBitDepthKey to 16,
+            AVLinearPCMIsFloatKey to false,
             AVEncoderAudioQualityKey to AVAudioQuality.MAX_VALUE
         )
 
@@ -80,7 +82,7 @@ internal actual object RecordCore {
         } ?: throw RecordFailException()
     }
 
-    internal actual fun stopRecording(): String {
+    internal actual fun stopRecording(config: RecordConfig): String {
         isRecording = false
         recorder?.stop()
 
@@ -141,7 +143,7 @@ internal actual object RecordCore {
     }
 
     private fun RecordConfig.getOutput(): String {
-        val timestamp = getTimeMillis().toString()
+        val timestamp = TimeSource.Monotonic.markNow().toString()
         val fileName = "${timestamp}${outputFormat.extension}"
 
         return when (this.outputLocation) {
@@ -161,5 +163,6 @@ internal actual object RecordCore {
 
     private fun OutputFormat.toAVFormatID(): AudioFormatID = when (this) {
         OutputFormat.MPEG_4 -> kAudioFormatMPEG4AAC
+        OutputFormat.WAV -> kAudioFormatLinearPCM
     }
 }
