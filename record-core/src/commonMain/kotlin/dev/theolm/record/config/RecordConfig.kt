@@ -1,11 +1,10 @@
 package dev.theolm.record.config
 
-public const val SampleRate: Int = 44100
-
 public data class RecordConfig(
     val outputLocation: OutputLocation = OutputLocation.Cache,
     val outputFormat: OutputFormat = OutputFormat.MPEG_4,
-    val audioEncoder: AudioEncoder = AudioEncoder.AAC
+    val audioEncoder: AudioEncoder = AudioEncoder.AAC,
+    val sampleRate: Int = 44100
 )
 
 public sealed class OutputFormat(public val extension: String) {

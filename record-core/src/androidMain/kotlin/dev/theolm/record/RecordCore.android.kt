@@ -10,7 +10,6 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import dev.theolm.record.config.OutputFormat
 import dev.theolm.record.config.RecordConfig
-import dev.theolm.record.config.SampleRate
 import dev.theolm.record.error.NoOutputFileException
 import dev.theolm.record.error.PermissionMissingException
 import dev.theolm.record.error.RecordFailException
@@ -49,14 +48,14 @@ internal actual object RecordCore {
             }
             OutputFormat.WAV -> {
                 val bufferSize = AudioRecord.getMinBufferSize(
-                    SampleRate,
+                    config.sampleRate,
                     config.outputFormat.toMediaRecorderOutputFormat(),
                     config.audioEncoder.toMediaRecorderAudioEncoder()
                 )
 
                 audioRecord = AudioRecord(
                     MediaRecorder.AudioSource.MIC,
-                    SampleRate,
+                    config.sampleRate,
                     config.outputFormat.toMediaRecorderOutputFormat(),
                     config.audioEncoder.toMediaRecorderAudioEncoder(),
                     bufferSize
@@ -67,7 +66,7 @@ internal actual object RecordCore {
                     myRecordingState = RecordingState.RECORDING
 
                     recordingThread = Thread {
-                        writeAudioDataToFile(bufferSize)
+                        writeAudioDataToFile(bufferSize, config.sampleRate)
                     }.apply { start() }
                 }
             }
@@ -126,7 +125,7 @@ internal actual object RecordCore {
         }
     }
 
-    private fun writeAudioDataToFile(bufferSize: Int) {
+    private fun writeAudioDataToFile(bufferSize: Int, sampleRate: Int) {
         val data = ByteArray(bufferSize)
         var totalAudioLength = 0
 
@@ -145,7 +144,7 @@ internal actual object RecordCore {
 
             // Update WAV header after recording is done
             fos.channel.position(0) // Rewind to start of file
-            fos.writeWavHeader(SampleRate, totalAudioLength + 36) // Data size + 36 bytes for header
+            fos.writeWavHeader(sampleRate, totalAudioLength + 36) // Data size + 36 bytes for header
         }
     }
 }
