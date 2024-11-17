@@ -61,7 +61,9 @@ To change the default configuration just call the method `Record.setConfig` and 
 Record.setConfig(
     RecordConfig(
         outputLocation = OutputLocation.Cache,
-        outputFormat = OutputFormat.MPEG_4
+        outputFormat = OutputFormat.MPEG_4,
+        audioEncoder = AudioEncoder.AAC,
+        sampleRate = 44100
     )
 )
 ```

@@ -3,7 +3,6 @@
 package dev.theolm.record
 
 import dev.theolm.record.config.RecordConfig
-import dev.theolm.record.config.SampleRate
 import dev.theolm.record.error.NoOutputFileException
 import dev.theolm.record.error.PermissionMissingException
 import dev.theolm.record.error.RecordFailException
@@ -46,7 +45,7 @@ internal actual object RecordCore {
 
         val settings = mapOf<Any?, Any>(
             AVFormatIDKey to config.outputFormat.toAVFormatID(),
-            AVSampleRateKey to SampleRate,
+            AVSampleRateKey to config.sampleRate,
             AVNumberOfChannelsKey to 1, // you may want to put a condition here?
             AVLinearPCMBitDepthKey to 16,
             AVLinearPCMIsFloatKey to false,
