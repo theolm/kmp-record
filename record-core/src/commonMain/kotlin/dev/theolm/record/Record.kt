@@ -10,7 +10,7 @@ public object Record {
     }
 
     public fun stopRecording(): String {
-        return RecordCore.stopRecording()
+        return RecordCore.stopRecording(recordConfig)
     }
 
     public fun isRecording(): Boolean {

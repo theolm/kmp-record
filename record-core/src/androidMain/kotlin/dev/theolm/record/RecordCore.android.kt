@@ -7,26 +7,37 @@ import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
+import android.util.Log
 import androidx.core.content.ContextCompat
 import dev.theolm.record.config.OutputFormat
 import dev.theolm.record.config.RecordConfig
 import dev.theolm.record.error.NoOutputFileException
 import dev.theolm.record.error.PermissionMissingException
 import dev.theolm.record.error.RecordFailException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import java.io.File
 import java.io.FileOutputStream
 
 @Suppress("TooGenericExceptionCaught", "SwallowedException")
 internal actual object RecordCore {
     private var audioRecord: AudioRecord? = null
-    private var recordingThread: Thread? = null
+    private var recordingJob: Job? = null
+    private var recordingThread: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var recorder: MediaRecorder? = null
     private var output: String? = null
-    private var myRecordingState : RecordingState = RecordingState.IDLE
+    @Volatile
+    private var myRecordingState: RecordingState = RecordingState.IDLE
+
 
     @Throws(RecordFailException::class)
     internal actual fun startRecording(config: RecordConfig) {
         checkPermission()
         output = config.getOutput()
+        File(output!!).parentFile?.mkdirs() //Ensure the output file path exists before recording starts
         when(config.outputFormat) {
             OutputFormat.MPEG_4 -> {
                 recorder = createMediaRecorder(config)
@@ -38,7 +49,7 @@ internal actual object RecordCore {
                         throw RecordFailException()
                     }
 
-                    setOnErrorListener { mr, what, extra ->
+                    setOnErrorListener { _, _, _ ->
                         stopRecording(config)
                     }
 
@@ -65,9 +76,13 @@ internal actual object RecordCore {
                     startRecording()
                     myRecordingState = RecordingState.RECORDING
 
-                    recordingThread = Thread {
-                        writeAudioDataToFile(bufferSize, config.sampleRate)
-                    }.apply { start() }
+                    recordingJob = recordingThread.launch {
+                        try {
+                            writeAudioDataToFile(bufferSize, config.sampleRate)
+                        } catch (e: Exception) {
+                            Log.e("RecordCore", "Recording failed", e)
+                        }
+                    }
                 }
             }
         }
@@ -79,8 +94,13 @@ internal actual object RecordCore {
         when (config.outputFormat) {
             OutputFormat.MPEG_4 -> {
                 recorder?.apply {
-                    stop()
-                    release()
+                    try {
+                        stop()
+                    } catch (e: Exception) {
+                        Log.e("RecordCore", "Error stopping MediaRecorder", e)
+                    } finally {
+                        release()
+                    }
                 }
 
                 return output.also {
@@ -89,12 +109,16 @@ internal actual object RecordCore {
                 } ?: throw NoOutputFileException()
             }
             OutputFormat.WAV -> {
+                recordingJob?.cancel()
                 audioRecord?.apply {
-                    stop()
-                    release()
+                    try {
+                        stop()
+                    } catch (e: Exception) {
+                        Log.e("RecordCore", "Error stopping AudioRecord", e)
+                    } finally {
+                        release()
+                    }
                 }
-                recordingThread?.join() // Wait for the recording thread to finish
-
                 return output ?: throw NoOutputFileException()
             }
         }
@@ -135,7 +159,7 @@ internal actual object RecordCore {
 
             // Write PCM data
             while (isRecording()) {
-                val read = audioRecord!!.read(data, 0, data.size)
+                val read = audioRecord?.read(data, 0, data.size) ?: 0
                 if (read > 0) {
                     fos.write(data, 0, read)
                     totalAudioLength += read
