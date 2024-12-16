@@ -14,7 +14,7 @@ import platform.Foundation.NSUserDomainMask
 import platform.Foundation.temporaryDirectory
 import kotlin.time.TimeSource
 
-public fun RecordConfig.getOutput(): String {
+internal fun RecordConfig.getOutput(): String {
     val timestamp = TimeSource.Monotonic.markNow().toString()
     val fileName = "${timestamp}${outputFormat.extension}"
 
@@ -33,7 +33,7 @@ public fun RecordConfig.getOutput(): String {
     }
 }
 
-public fun OutputFormat.toAVFormatID(): AudioFormatID = when (this) {
+internal fun OutputFormat.toAVFormatID(): AudioFormatID = when (this) {
     OutputFormat.MPEG_4 -> kAudioFormatMPEG4AAC
     OutputFormat.WAV -> kAudioFormatLinearPCM
 }
