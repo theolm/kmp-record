@@ -4,60 +4,127 @@ package dev.theolm.record
 
 import android.Manifest.permission.RECORD_AUDIO
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
+import android.util.Log
 import androidx.core.content.ContextCompat
-import dev.theolm.record.config.AudioEncoder
 import dev.theolm.record.config.OutputFormat
-import dev.theolm.record.config.OutputLocation
 import dev.theolm.record.config.RecordConfig
 import dev.theolm.record.error.NoOutputFileException
 import dev.theolm.record.error.PermissionMissingException
 import dev.theolm.record.error.RecordFailException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 @Suppress("TooGenericExceptionCaught", "SwallowedException")
 internal actual object RecordCore {
+    private var audioRecord: AudioRecord? = null
+    private var recordingJob: Job? = null
+    private var recordingThread: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var recorder: MediaRecorder? = null
     private var output: String? = null
-    private var recordingState : RecordingState = RecordingState.IDLE
+    @Volatile
+    private var myRecordingState: RecordingState = RecordingState.IDLE
+
 
     @Throws(RecordFailException::class)
     internal actual fun startRecording(config: RecordConfig) {
         checkPermission()
         output = config.getOutput()
-        recorder = createMediaRecorder(config)
+        File(output!!).parentFile?.mkdirs() //Ensure the output file path exists before recording starts
+        when(config.outputFormat) {
+            OutputFormat.MPEG_4 -> {
+                recorder = createMediaRecorder(config)
 
-        recorder?.apply {
-            runCatching {
-                prepare()
-            }.onFailure {
-                throw RecordFailException()
+                recorder?.apply {
+                    runCatching {
+                        prepare()
+                    }.onFailure {
+                        throw RecordFailException()
+                    }
+
+                    setOnErrorListener { _, _, _ ->
+                        stopRecording(config)
+                    }
+
+                    start()
+                    myRecordingState = RecordingState.RECORDING
+                }
             }
+            OutputFormat.WAV -> {
+                val bufferSize = AudioRecord.getMinBufferSize(
+                    config.sampleRate,
+                    config.outputFormat.toMediaRecorderOutputFormat(),
+                    config.audioEncoder.toMediaRecorderAudioEncoder()
+                )
 
-            setOnErrorListener { _, _, _ ->
-                stopRecording()
+                audioRecord = AudioRecord(
+                    MediaRecorder.AudioSource.MIC,
+                    config.sampleRate,
+                    config.outputFormat.toMediaRecorderOutputFormat(),
+                    config.audioEncoder.toMediaRecorderAudioEncoder(),
+                    bufferSize
+                )
+
+                audioRecord?.apply {
+                    startRecording()
+                    myRecordingState = RecordingState.RECORDING
+
+                    recordingJob = recordingThread.launch {
+                        try {
+                            writeAudioDataToFile(bufferSize, config.sampleRate)
+                        } catch (e: Exception) {
+                            Log.e("RecordCore", "Recording failed", e)
+                        }
+                    }
+                }
             }
-
-            start()
-            recordingState = RecordingState.RECORDING
         }
     }
 
     @Throws(NoOutputFileException::class)
-    internal actual fun stopRecording(): String {
-        recordingState = RecordingState.IDLE
-        recorder?.apply {
-            stop()
-            release()
-        }
+    internal actual fun stopRecording(config: RecordConfig): String {
+        myRecordingState = RecordingState.IDLE
+        when (config.outputFormat) {
+            OutputFormat.MPEG_4 -> {
+                recorder?.apply {
+                    try {
+                        stop()
+                    } catch (e: Exception) {
+                        Log.e("RecordCore", "Error stopping MediaRecorder", e)
+                    } finally {
+                        release()
+                    }
+                }
 
-        return output.also {
-            output = null
-            recorder = null
-        } ?: throw NoOutputFileException()
+                return output.also {
+                    output = null
+                    recorder = null
+                } ?: throw NoOutputFileException()
+            }
+            OutputFormat.WAV -> {
+                recordingJob?.cancel()
+                audioRecord?.apply {
+                    try {
+                        stop()
+                    } catch (e: Exception) {
+                        Log.e("RecordCore", "Error stopping AudioRecord", e)
+                    } finally {
+                        release()
+                    }
+                }
+                return output ?: throw NoOutputFileException()
+            }
+        }
     }
 
-    internal actual fun isRecording(): Boolean = recordingState == RecordingState.RECORDING
+    internal actual fun isRecording(): Boolean = myRecordingState == RecordingState.RECORDING
 
     private fun createMediaRecorder(config: RecordConfig) =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -81,21 +148,27 @@ internal actual object RecordCore {
             throw PermissionMissingException()
         }
     }
-}
 
-private fun OutputFormat.toMediaRecorderOutputFormat(): Int = when (this) {
-    OutputFormat.MPEG_4 -> MediaRecorder.OutputFormat.MPEG_4
-}
+    private fun writeAudioDataToFile(bufferSize: Int, sampleRate: Int) {
+        val data = ByteArray(bufferSize)
+        var totalAudioLength = 0
 
-private fun AudioEncoder.toMediaRecorderAudioEncoder(): Int = when (this) {
-    AudioEncoder.AAC -> MediaRecorder.AudioEncoder.AAC
-}
+        FileOutputStream(output).use { fos ->
+            // Write a placeholder for the WAV file header
+            fos.write(ByteArray(44))
 
-private fun RecordConfig.getOutput(): String {
-    val fileName = "${System.currentTimeMillis()}${outputFormat.extension}"
-    return when (this.outputLocation) {
-        OutputLocation.Cache -> "${applicationContext.cacheDir.absolutePath}/$fileName"
-        OutputLocation.Internal -> "${applicationContext.filesDir}/$fileName"
-        is OutputLocation.Custom -> "${this.outputLocation.path}/$fileName"
+            // Write PCM data
+            while (isRecording()) {
+                val read = audioRecord?.read(data, 0, data.size) ?: 0
+                if (read > 0) {
+                    fos.write(data, 0, read)
+                    totalAudioLength += read
+                }
+            }
+
+            // Update WAV header after recording is done
+            fos.channel.position(0) // Rewind to start of file
+            fos.writeWavHeader(sampleRate, totalAudioLength + 36) // Data size + 36 bytes for header
+        }
     }
 }
