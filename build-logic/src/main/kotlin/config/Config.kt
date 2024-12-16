@@ -15,5 +15,5 @@ object Config {
     // Libraries versions
     const val artifactId = "record"
     const val groupId = "dev.theolm.record"
-    const val libVersion = "0.3.0"
+    const val libVersion = "0.4.0"
 }
