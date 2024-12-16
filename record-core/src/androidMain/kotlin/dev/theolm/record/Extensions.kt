@@ -10,17 +10,17 @@ import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-public fun OutputFormat.toMediaRecorderOutputFormat(): Int = when (this) {
+internal fun OutputFormat.toMediaRecorderOutputFormat(): Int = when (this) {
     OutputFormat.MPEG_4 -> MediaRecorder.OutputFormat.MPEG_4
     OutputFormat.WAV -> AudioFormat.CHANNEL_IN_MONO
 }
 
-public fun AudioEncoder.toMediaRecorderAudioEncoder(): Int = when (this) {
+internal fun AudioEncoder.toMediaRecorderAudioEncoder(): Int = when (this) {
     AudioEncoder.AAC -> MediaRecorder.AudioEncoder.AAC
     AudioEncoder.PCM_16BIT -> AudioFormat.ENCODING_PCM_16BIT
 }
 
-public fun RecordConfig.getOutput(): String {
+internal fun RecordConfig.getOutput(): String {
     val fileName = "${System.currentTimeMillis()}${outputFormat.extension}"
     return when (this.outputLocation) {
         OutputLocation.Cache -> "${applicationContext.cacheDir.absolutePath}/$fileName"
@@ -29,7 +29,7 @@ public fun RecordConfig.getOutput(): String {
     }
 }
 
-public fun FileOutputStream.writeWavHeader(sampleRate: Int, totalAudioLength: Int) {
+internal fun FileOutputStream.writeWavHeader(sampleRate: Int, totalAudioLength: Int) {
     // Update this to use totalAudioLength instead of bufferSize
     write("RIFF".toByteArray())
     write(intToByteArray(36 + totalAudioLength)) // Total file size - 8 bytes
@@ -45,5 +45,9 @@ public fun FileOutputStream.writeWavHeader(sampleRate: Int, totalAudioLength: In
     write("data".toByteArray())
     write(intToByteArray(totalAudioLength)) // Subchunk2 size
 }
-private fun intToByteArray(value: Int): ByteArray = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array()
-private fun shortToByteArray(value: Short): ByteArray = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(value).array()
+
+private fun intToByteArray(value: Int): ByteArray =
+    ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array()
+
+private fun shortToByteArray(value: Short): ByteArray =
+    ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(value).array()

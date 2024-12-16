@@ -46,7 +46,7 @@ internal actual object RecordCore {
         val settings = mapOf<Any?, Any>(
             AVFormatIDKey to config.outputFormat.toAVFormatID(),
             AVSampleRateKey to config.sampleRate,
-            AVNumberOfChannelsKey to 1, // you may want to put a condition here?
+            AVNumberOfChannelsKey to 1, // Mono. Stereo is not supported for now.
             AVLinearPCMBitDepthKey to 16,
             AVLinearPCMIsFloatKey to false,
             AVEncoderAudioQualityKey to AVAudioQuality.MAX_VALUE
