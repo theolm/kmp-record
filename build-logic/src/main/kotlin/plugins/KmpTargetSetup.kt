@@ -15,8 +15,8 @@ fun KotlinMultiplatformExtension.setupKmpTargets(
         }
     }
 
-//    jvm("desktop")
-//
+    jvm("desktop")
+
     listOf(
         iosX64(),
         iosArm64(),
