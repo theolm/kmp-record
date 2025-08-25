@@ -25,6 +25,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.mokoPermissions)
         }
 
         commonMain.dependencies {
@@ -39,6 +40,9 @@ kotlin {
             implementation(libs.voyager.screenModel)
             implementation(libs.voyager.koin)
             implementation(libs.materialKolor)
+        }
+
+        iosMain.dependencies {
             implementation(libs.mokoPermissions)
         }
     }
