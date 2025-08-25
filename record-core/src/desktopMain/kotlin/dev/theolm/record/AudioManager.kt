@@ -1,7 +1,6 @@
 package dev.theolm.record
 
 import java.io.File
-import java.io.IOException
 import javax.sound.sampled.AudioFileFormat
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioInputStream
@@ -27,8 +26,8 @@ internal class JvmAudioRecorder(
 
     val isRecording: Boolean
         get() {
-            val jobActive = recordingJob != null && recordingJob?.isActive == true
-            val microphoneActive = microphone != null && microphone?.isActive == true
+            val jobActive = recordingJob != null && recordingJob?.isActive ?: false
+            val microphoneActive = microphone != null && microphone?.isActive ?: false
             return jobActive && microphoneActive
         }
 
@@ -43,51 +42,45 @@ internal class JvmAudioRecorder(
         }
 
         microphone = AudioSystem.getLine(info) as TargetDataLine?
-        microphone!!.open(audioFormat)
 
-        microphone!!.start()
+        microphone?.let {
+            it.open(audioFormat)
 
-        audioInputStream = AudioInputStream(microphone)
+            it.start()
 
-        println("Recording started.")
+            audioInputStream = AudioInputStream(microphone)
 
-        recordingJob = launch {
-            runCatching {
-                AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, audioFile)
-            }.onFailure {
-                System.err.println("Failed to save recorded audio: ${it.message}")
-            }.onSuccess {
-                println("Recording saved successfully.")
+            println("Recording started.")
+
+            recordingJob = launch {
+                runCatching {
+                    AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, audioFile)
+                }.onFailure { writeError ->
+                    System.err.println("Failed to save recorded audio: ${writeError.message}")
+                }.onSuccess {
+                    println("Recording saved successfully.")
+                }
             }
-        }
+        } ?: System.err.println("Microphone is not available.")
     }
 
     fun stopRecording(): String {
-        if (microphone != null) {
-            microphone!!.stop()
-            microphone!!.close()
+        microphone?.let {
+            it.stop()
+            it.close()
         }
 
-        if (audioInputStream != null) {
-            try {
+        audioInputStream?.let {
+            runCatching {
                 audioInputStream!!.close()
                 recordingJob?.cancel()
                 recordingJob = null
-            } catch (e: IOException) {
-                System.err.println("Could not close audio input stream: " + e.message)
+            }.onFailure {
+                System.err.println("Could not close audio input stream: " + it.message)
             }
         }
 
-        return audioFile.absolutePath
-    }
 
-    companion object Companion {
-        private val DEFAULT_FORMAT = AudioFormat(
-            44100f,  // Sample rate (Hz)
-            16,  // Sample size in bits
-            2,  // Channels (stereo)
-            true,  // Signed
-            false // Big endian
-        )
+        return audioFile.absolutePath
     }
 }
