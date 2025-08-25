@@ -15,15 +15,22 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 
-internal class AudioRecorder(
+internal class JvmAudioRecorder(
     fileName: String,
-    private val audioFormat: AudioFormat = DEFAULT_FORMAT
+    private val audioFormat: AudioFormat
 ) : CoroutineScope by MainScope() {
 
     private val audioFile: File = File(fileName)
     private var microphone: TargetDataLine? = null
     private var audioInputStream: AudioInputStream? = null
     private var recordingJob: Job? = null
+
+    val isRecording: Boolean
+        get() {
+            val jobActive = recordingJob != null && recordingJob?.isActive == true
+            val microphoneActive = microphone != null && microphone?.isActive == true
+            return jobActive && microphoneActive
+        }
 
     @Throws(LineUnavailableException::class)
     fun startRecording() {
@@ -55,7 +62,7 @@ internal class AudioRecorder(
         }
     }
 
-    fun stopRecording() {
+    fun stopRecording(): String {
         if (microphone != null) {
             microphone!!.stop()
             microphone!!.close()
@@ -71,10 +78,10 @@ internal class AudioRecorder(
             }
         }
 
-        println("Audio recorded successfully to: " + audioFile.absolutePath)
+        return audioFile.absolutePath
     }
 
-    companion object {
+    companion object Companion {
         private val DEFAULT_FORMAT = AudioFormat(
             44100f,  // Sample rate (Hz)
             16,  // Sample size in bits
