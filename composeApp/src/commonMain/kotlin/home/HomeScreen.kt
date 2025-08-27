@@ -17,17 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
-import dev.icerock.moko.permissions.Permission
-import dev.icerock.moko.permissions.PermissionsController
-import dev.icerock.moko.permissions.compose.BindEffect
-import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
-import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
 import dev.theolm.record.Record
 import dev.theolm.record.config.OutputFormat
 import dev.theolm.record.config.OutputLocation
 import dev.theolm.record.config.RecordConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import rememberPermissionController
 
 class HomeScreen : Screen {
     @Composable
@@ -37,12 +33,9 @@ class HomeScreen : Screen {
 
     @Composable
     private fun Screen() {
-        val factory: PermissionsControllerFactory = rememberPermissionsControllerFactory()
-        val controller: PermissionsController =
-            remember(factory) { factory.createPermissionsController() }
-        val coroutineScope: CoroutineScope = rememberCoroutineScope()
+        val controller = rememberPermissionController()
 
-        BindEffect(controller)
+        val coroutineScope: CoroutineScope = rememberCoroutineScope()
 
         val screenModel = rememberScreenModel { HomeScreenModel() }
         var uiState by screenModel.uiState
@@ -68,8 +61,8 @@ class HomeScreen : Screen {
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                if (!controller.isPermissionGranted(Permission.RECORD_AUDIO)) {
-                                    controller.providePermission(Permission.RECORD_AUDIO)
+                                if (!controller.hasAudioRecordingPermission()) {
+                                    controller.requestAudioRecordingPermission()
                                 } else {
                                     recording = if (recording) {
                                         Record.stopRecording().also {
