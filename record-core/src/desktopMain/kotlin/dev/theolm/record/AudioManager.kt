@@ -1,5 +1,6 @@
 package dev.theolm.record
 
+import kotlinx.coroutines.CoroutineDispatcher
 import java.io.File
 import javax.sound.sampled.AudioFileFormat
 import javax.sound.sampled.AudioFormat
@@ -9,6 +10,7 @@ import javax.sound.sampled.DataLine
 import javax.sound.sampled.LineUnavailableException
 import javax.sound.sampled.TargetDataLine
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -16,7 +18,8 @@ import kotlinx.coroutines.launch
 
 internal class JvmAudioRecorder(
     fileName: String,
-    private val audioFormat: AudioFormat
+    private val audioFormat: AudioFormat,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : CoroutineScope by MainScope() {
 
     private val audioFile: File = File(fileName)
@@ -52,7 +55,7 @@ internal class JvmAudioRecorder(
 
             println("Recording started.")
 
-            recordingJob = launch {
+            recordingJob = launch(dispatcher) {
                 runCatching {
                     AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, audioFile)
                 }.onFailure { writeError ->
