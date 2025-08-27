@@ -45,6 +45,19 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.mokoPermissions)
         }
+
+        val desktopMain by getting {
+            dependencies {
+                implementation("com.itextpdf:itext7-core:7.0.2")
+                implementation(compose.desktop.currentOs)
+            }
+        }
+    }
+}
+
+compose.desktop {
+    application {
+        mainClass = "main.kt"
     }
 }
 
