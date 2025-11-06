@@ -32,10 +32,13 @@ internal actual object RecordCore {
     @Volatile
     private var myRecordingState: RecordingState = RecordingState.IDLE
 
+    private var volumeCallback: VolumeCallback? = null
+
 
     @Throws(RecordFailException::class)
     internal actual fun startRecording(config: RecordConfig) {
         checkPermission()
+        volumeCallback = config.volumeCallback
         output = config.getOutput()
         File(output!!).parentFile?.mkdirs() //Ensure the output file path exists before recording starts
         when(config.outputFormat) {
@@ -91,6 +94,7 @@ internal actual object RecordCore {
     @Throws(NoOutputFileException::class)
     internal actual fun stopRecording(config: RecordConfig): String {
         myRecordingState = RecordingState.IDLE
+        volumeCallback = null
         when (config.outputFormat) {
             OutputFormat.MPEG_4 -> {
                 recorder?.apply {
@@ -163,6 +167,11 @@ internal actual object RecordCore {
                 if (read > 0) {
                     fos.write(data, 0, read)
                     totalAudioLength += read
+                    // Calculate and emit volume
+                    volumeCallback?.let { callback ->
+                        val volume = calculateVolume(data, read)
+                        callback.onVolumeChanged(volume)
+                    }
                 }
             }
 
@@ -170,5 +179,54 @@ internal actual object RecordCore {
             fos.channel.position(0) // Rewind to start of file
             fos.writeWavHeader(sampleRate, totalAudioLength + 36) // Data size + 36 bytes for header
         }
+    }
+
+    /**
+     * Calculates the volume level from raw PCM audio data.
+     *
+     * This function processes 16-bit PCM audio samples stored in a byte array and calculates
+     * the Root Mean Square (RMS) amplitude, which represents the average loudness of the audio.
+     *
+     * @param buffer ByteArray containing raw PCM audio data in 16-bit little-endian format
+     * @param read Number of bytes actually read into the buffer (must be even number since each sample is 2 bytes)
+     * @return Volume level as a Double in the range 0.0-100.0, where:
+     *         - 0.0 represents silence
+     *         - 100 represents very loud audio (near clipping)
+     *
+     * ## How it works:
+     * 1. Converts pairs of bytes into 16-bit audio samples (little-endian format)
+     * 2. Calculates RMS (Root Mean Square): sqrt(mean(sample²))
+     * 3. Normalizes the result to 0-100 scale by dividing by max 16-bit value (32767)
+     *
+     * ## Technical details:
+     * - Uses PCM (Pulse Code Modulation) 16-bit format standard
+     * - Assumes little-endian byte order (low byte first, high byte second)
+     * - RMS is the industry-standard method for measuring audio amplitude
+     * - Sample range: -32768 to +32767 (signed 16-bit integer)
+     *
+     * @see [Root Mean Square](https://en.wikipedia.org/wiki/Root_mean_square)
+     * @see [PCM Audio Format](https://en.wikipedia.org/wiki/Pulse-code_modulation)
+     */
+    private fun calculateVolume(buffer: ByteArray, read: Int): Double {
+        var sum = 0.0
+        var sampleCount = 0
+
+        var i = 0
+        while (i < read - 1) {
+            val low = buffer[i].toInt() and 0xFF
+            val high = buffer[i + 1].toInt()
+            val sample = ((high shl 8) or low).toShort()
+
+            sum += (sample.toDouble() * sample.toDouble())
+            sampleCount++
+            i += 2
+        }
+
+        if (sampleCount == 0) return 0.0
+
+        val rms = kotlin.math.sqrt(sum / sampleCount)
+
+        // Normalize to 0-100 scale (16-bit max is 32767)
+        return (rms / 32767.0) * 100.0
     }
 }

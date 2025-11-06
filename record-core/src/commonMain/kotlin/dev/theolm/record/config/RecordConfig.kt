@@ -1,10 +1,13 @@
 package dev.theolm.record.config
 
+import dev.theolm.record.VolumeCallback
+
 public data class RecordConfig(
     val outputLocation: OutputLocation = OutputLocation.Cache,
     val outputFormat: OutputFormat = OutputFormat.MPEG_4,
     val audioEncoder: AudioEncoder = AudioEncoder.AAC,
-    val sampleRate: Int = 44100
+    val sampleRate: Int = 44100,
+    val volumeCallback: VolumeCallback? = null
 )
 
 public sealed class OutputFormat(public val extension: String) {
