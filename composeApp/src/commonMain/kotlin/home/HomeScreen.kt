@@ -22,13 +22,16 @@ import dev.icerock.moko.permissions.PermissionsController
 import dev.icerock.moko.permissions.compose.BindEffect
 import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
 import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
+import dev.theolm.record.ExperimentalVolumeCallback
 import dev.theolm.record.Record
+import dev.theolm.record.VolumeCallback
 import dev.theolm.record.config.OutputFormat
 import dev.theolm.record.config.OutputLocation
 import dev.theolm.record.config.RecordConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalVolumeCallback::class)
 class HomeScreen : Screen {
     @Composable
     override fun Content() {
@@ -51,7 +54,12 @@ class HomeScreen : Screen {
             Record.setConfig(
                 RecordConfig(
                     outputLocation = OutputLocation.Cache,
-                    outputFormat = OutputFormat.MPEG_4
+                    outputFormat = OutputFormat.MPEG_4,
+                    volumeCallback = object : VolumeCallback {
+                        override fun onVolumeChanged(volume: Double) {
+                            // On Volume Changed Callback
+                        }
+                    }
                 )
             )
         }

@@ -153,6 +153,7 @@ internal actual object RecordCore {
         }
     }
 
+    @OptIn(ExperimentalVolumeCallback::class)
     private fun writeAudioDataToFile(bufferSize: Int, sampleRate: Int) {
         val data = ByteArray(bufferSize)
         var totalAudioLength = 0

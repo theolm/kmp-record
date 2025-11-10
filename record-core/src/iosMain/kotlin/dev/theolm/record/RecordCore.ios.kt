@@ -98,6 +98,7 @@ internal actual object RecordCore {
 
     internal actual fun isRecording(): Boolean = myRecordingState
 
+    @OptIn(ExperimentalVolumeCallback::class)
     private fun startMetering(recorder: AVAudioRecorder) {
         meteringJob = meteringScope.launch {
             while (isActive && myRecordingState) {
