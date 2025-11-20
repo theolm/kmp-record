@@ -3,15 +3,16 @@ package plugins
 import config.Config
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.Framework
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 fun KotlinMultiplatformExtension.setupKmpTargets(
     onBinariesFramework: (Framework) -> Unit = {}
 ) {
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = Config.javaVersion.toString()
-            }
+        compilerOptions {
+            jvmTarget.set(
+                JvmTarget.fromTarget(Config.javaVersion.majorVersion)
+            )
         }
     }
 
