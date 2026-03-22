@@ -40,6 +40,7 @@ kotlin {
             implementation(libs.voyager.koin)
             implementation(libs.materialKolor)
             implementation(libs.mokoPermissions)
+            implementation(libs.moko.permissions.microphone)
         }
     }
 }

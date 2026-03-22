@@ -22,6 +22,7 @@ import dev.icerock.moko.permissions.PermissionsController
 import dev.icerock.moko.permissions.compose.BindEffect
 import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
 import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
+import dev.icerock.moko.permissions.microphone.RECORD_AUDIO
 import dev.theolm.record.ExperimentalVolumeCallback
 import dev.theolm.record.Record
 import dev.theolm.record.VolumeCallback
