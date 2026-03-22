@@ -1,34 +1,29 @@
 [versions]
 agp = "8.13.1"
-androidx-activityCompose = "1.9.3"
-androidx-appcompat = "1.7.1"
-androidx-core-ktx = "1.15.0"
-compose = "1.7.5"
-compose-plugin = "1.7.1"
-kotlin = "2.2.21"
-voyager = "1.0.0"
+androidx-activityCompose = "1.13.0"
+androidx-core-ktx = "1.18.0"
+compose = "1.10.5"
+compose-plugin = "1.10.3"
+kotlin = "2.3.20"
+voyager = "1.0.1"
 coroutines = "1.10.2"
-materialKolor = "1.4.4"
+materialKolor = "4.1.1"
 detekt = "1.23.8"
 composeRules = "1.4.0"
 startup = "1.2.0"
 mavenPublish = "0.30.0"
-permissions = "0.18.1"
+permissions = "0.20.1"
 
 [libraries]
 android-buildTools = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 androidx-startup = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-common = { module = "org.jetbrains.kotlin:kotlin-test-common", version.ref = "kotlin" }
 kotlin-test-annotation = { module = "org.jetbrains.kotlin:kotlin-test-annotations-common", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines"}
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlin_gradle_plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlin-coroutines-swing = { module= "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-plugin = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "compose-plugin" }
@@ -41,6 +36,7 @@ detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 detekt-composeRules = { module = "ru.kode:detekt-rules-compose", version.ref = "composeRules" }
 gradleMavenPublish-gradlePlugin = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "mavenPublish" }
 mokoPermissions = { module = "dev.icerock.moko:permissions-compose", version.ref = "permissions" }
+moko-permissions-microphone = { module = "dev.icerock.moko:permissions-microphone", version.ref = "permissions" }
 
 
 [plugins]

@@ -11,8 +11,8 @@ fun AppTheme(
     content: @Composable () -> Unit
 ) {
     DynamicMaterialTheme(
-        seedColor = seedColor,
-        useDarkTheme = useDarkTheme,
+        primary = seedColor,
+        isDark = useDarkTheme,
         animate = true,
         content = {
             Surface(content = content)
