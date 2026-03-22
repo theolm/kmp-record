@@ -32,3 +32,9 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# AGENTS.md file
+AGENTS.md
+
+# Gradle daemon JVM config
+gradle/gradle-daemon-jvm.properties
