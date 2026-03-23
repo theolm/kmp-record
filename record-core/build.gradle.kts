@@ -1,20 +1,31 @@
 import com.vanniktech.maven.publish.SonatypeHost
 import config.Config
 import plugins.setupKmpTargets
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    id("android-lib-setup")
+    alias(libs.plugins.androidMultiplatformLibrary)
     id("detekt-setup")
+    alias(libs.plugins.kotlinMultiplatform)
     id("publish-setup")
-}
-
-android {
-    namespace = Config.applicationId
 }
 
 kotlin {
     explicitApi()
+    
+    androidLibrary {
+        namespace = Config.applicationId
+        compileSdk = Config.compileSdk
+        
+        compilerOptions {
+            jvmTarget.set(JvmTarget.fromTarget(Config.javaVersion.majorVersion))
+        }
+        
+        androidResources {
+            enable = true
+        }
+    }
+    
     setupKmpTargets()
 
     sourceSets {

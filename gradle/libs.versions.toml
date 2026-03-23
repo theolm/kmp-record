@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.1"
+agp = "9.0.1"
 androidx-activityCompose = "1.13.0"
 androidx-core-ktx = "1.18.0"
 compose = "1.10.5"
@@ -42,6 +42,8 @@ moko-permissions-microphone = { module = "dev.icerock.moko:permissions-microphon
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
+androidMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
