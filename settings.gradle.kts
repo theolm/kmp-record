@@ -24,6 +24,7 @@ dependencyResolutionManagement {
 }
 
 include(
+    ":androidApp",
     ":composeApp",
     ":record-core",
 )

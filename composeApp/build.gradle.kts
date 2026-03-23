@@ -1,19 +1,29 @@
 import config.Config
 import plugins.setupKmpTargets
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("android-application-setup")
+    alias(libs.plugins.androidMultiplatformLibrary)
     id("detekt-setup")
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.jetbrainsCompose)
 }
 
-android {
-    namespace = Config.applicationId + ".sample"
-}
-
 kotlin {
+    androidLibrary {
+        namespace = Config.applicationId + ".sample.library"
+        compileSdk = Config.compileSdk
+        
+        compilerOptions {
+            jvmTarget.set(JvmTarget.fromTarget(Config.javaVersion.majorVersion))
+        }
+        
+        androidResources {
+            enable = true
+        }
+    }
+    
     setupKmpTargets(
         onBinariesFramework = {
             it.baseName = "ComposeApp"
@@ -22,11 +32,6 @@ kotlin {
     )
 
     sourceSets {
-        androidMain.dependencies {
-            implementation(libs.compose.ui.tooling.preview)
-            implementation(libs.androidx.activity.compose)
-        }
-
         commonMain.dependencies {
             implementation(projects.recordCore)
 
@@ -42,11 +47,5 @@ kotlin {
             implementation(libs.mokoPermissions)
             implementation(libs.moko.permissions.microphone)
         }
-    }
-}
-
-android {
-    dependencies {
-        debugImplementation(libs.compose.ui.tooling)
     }
 }
